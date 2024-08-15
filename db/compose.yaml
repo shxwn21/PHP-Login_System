@@ -1,0 +1,29 @@
+#version: '3'  # docker version, TODO: {Figure out actual docker version and plugin on vscode required}
+services:   # comes from the docker hub where they have the php 
+  www:
+    image: php:apache
+    volumes: #purpose is to have a sync connection between running container and local host so container will reflect new php written into it
+        - "./:/var/www/html" #Purpose: Everything here will exist in the container under this voume/ syncs project fir with container web dir
+    ports: 
+      - 80:80 #specifies which port is binded on local machine to the container
+      - 443:443 #we bind this porting if we ever want to service ssl stuff, we can use this for future ssl traffic
+  db:       #Get all info from here from mySQL hub
+    image: mysql:latest
+    environment: 
+      - MYSQL_DATABASE=php_docker
+      - MYSQL_USER=php_docker
+      - MYSQL_PASSWORD=password #this should live in a env var
+      - MYSQL_ALLOW_EMPTY_PASSWORD=1 # equivalent to True
+      - MYSQL_ROOT_PASSWORD=root_password # This will be the password for the root user
+      - MYSQL_ROOT_HOST=% # Allows root access from any host for development purposes
+    volumes: #for syncing db folder with sql file with container to load sql database of the project
+      - "./db:/docker-entrypoint-initdb.d" #sync persistent sql files with container
+      #- db_data:/var/lib/mysql
+
+  phpmyadmin: #Web interface that allows us to visually see the MYSQL we are setting up under db
+    image: phpmyadmin/phpmyadmin
+    ports:
+      - 8001:80 #Binds port 8001 to port 80 where container is, How do we know port 80 is where our container is? 
+    environment:
+      - PMA_HOST=db #defines the name of the service for the phpmyadmin (or PMA) 
+      - PMA_PORT=3306 #Port the name of the service above should be working with, Q: How do we know this is the port it's working with?
